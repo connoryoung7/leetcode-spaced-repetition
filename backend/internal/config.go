@@ -1,9 +1,7 @@
 package internal
 
 import (
-	"fmt"
 	"log"
-	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
@@ -24,17 +22,12 @@ func GetConfig() (Config, error) {
 		log.Fatal("Error loading .env file")
 	}
 
-	envVars := os.Environ()
-
-	fmt.Printf("%+v\n", envVars)
-
 	var config Config
 	err = envconfig.Process("", &config)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	fmt.Printf("The config is %+v\n", config)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

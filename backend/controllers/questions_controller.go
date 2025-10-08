@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"fmt"
+	"leetcode-spaced-repetition/models"
 	"leetcode-spaced-repetition/services"
 	"regexp"
 	"strconv"
@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 )
 
 const dateRegexString = `^\d{4}-\d{2}-\d{2}T\d{2}`
@@ -17,9 +18,10 @@ type leetCodeQuestionRequest struct {
 	ID string `uri:"id" binding:"required,number"`
 }
 
-type questionSubmissionRequest struct {
-	StartDate string `json:"startDate"`
-	EndDate   string `json:"endDate"`
+type saveQuestionSubmissionRequest struct {
+	QuestionID      int `json:"questionId binding:"required,number"`
+	TimeTaken       int `json:"timeTaken" binding:"required,number"`
+	ConfidenceLevel int `json:"confidenceLevel"`
 }
 
 var validDate validator.Func = func(fl validator.FieldLevel) bool {
@@ -48,7 +50,7 @@ func RegisterRoutes(r *gin.Engine, questionsService *services.QuestionService) {
 	questionsGroup.GET(":id", questionsController.GetQuestionByID)
 
 	individualQuestionsGroup := questionsGroup.Group(":id")
-	individualQuestionsGroup.GET("submissions", getQuestionSubmissionsByID)
+	individualQuestionsGroup.GET("submissions", questionsController.getQuestionSubmissionsByID)
 }
 
 func (c QuestionsController) GetQuestionByID(context *gin.Context) {
@@ -92,21 +94,32 @@ func (c QuestionsController) GetQuestionByID(context *gin.Context) {
 
 	question.Tags = tags
 
-	fmt.Printf("The question is %+v\n", *question)
-
 	context.JSON(200, *question)
 }
 
-func getQuestionSubmissionsByID(c *gin.Context) {
-	var request questionSubmissionRequest
+func (c QuestionsController) getQuestionSubmissionsByID(context *gin.Context) {
+	var request leetCodeQuestionRequest
 
-	if err := c.ShouldBindUri(&request); err != nil {
-
+	if err := context.ShouldBindUri(&request); err != nil {
+		context.JSON(400, gin.H{
+			"error": "The id of the question must be a valid integer.",
+		})
 	}
 
-	c.JSON(200, gin.H{
-		"data": []string{},
-	})
+	questionId, _ := strconv.ParseInt(request.ID, 10, 0)
+
+	var resp models.Pagaination[models.QuestionSubmission]
+
+	result, err := c.questionsService.GetAllSubmissionsForQuestion(int(questionId))
+	if err != nil {
+		context.JSON(500, gin.H{
+			"error": "An internal server error occurred.",
+		})
+	}
+
+	resp.Data = result
+
+	context.JSON(200, resp)
 }
 
 func (c QuestionsController) GetAllQuestionTags(context *gin.Context) {
@@ -119,5 +132,24 @@ func (c QuestionsController) GetAllQuestionTags(context *gin.Context) {
 
 	context.JSON(200, gin.H{
 		"tags": tags,
+	})
+}
+
+func (c QuestionsController) SaveQuestionController(context *gin.Context) {
+	var questionSubmissionRequest saveQuestionSubmissionRequest
+	if err := context.ShouldBindBodyWithJSON(&questionSubmissionRequest); err != nil {
+		context.JSON(400, gin.H{
+			"error": "Invalid request body",
+		})
+	}
+
+	if err = c.questionsService.SaveQuestionSubmission(
+		questionSubmissionRequest.QuestionID,
+		uuid.Must(uuid.New()),
+		
+	)
+
+	context.JSON(200, gin.H{
+		"message": "Successfully saved question submission",
 	})
 }

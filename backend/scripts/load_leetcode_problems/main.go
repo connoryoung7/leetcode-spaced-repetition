@@ -142,8 +142,6 @@ func main() {
 			fmt.Printf("Invalid questionId\n")
 		}
 
-		// fmt.Printf("Processing question %d", questionId)
-
 		for j := 0; j < len(question.Tags); j++ {
 			fmt.Printf("Processing questionId %d, tag %s\n", questionId, question.Tags[j])
 			err = questionRepo.SaveQuestionTag(questionId, question.Tags[j])

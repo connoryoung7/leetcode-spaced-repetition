@@ -3,10 +3,33 @@ package repositories
 import (
 	"database/sql"
 	"leetcode-spaced-repetition/models"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type QuestionPostgresRepository struct {
 	db *sql.DB
+}
+
+// SaveQuestionSubmission implements QuestionRepository.
+func (r QuestionPostgresRepository) SaveQuestionSubmission(questionID int, userID uuid.UUID, date time.Time, timeTaken time.Duration, confidenceLevel models.ConfidenceLevel) error {
+	_, err := r.db.Exec(
+		`INSERT INTO questionSubmissions (questionId, userId, submissionDate, timeTaken, confidenceLevel) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (questionId, userId, submissionDate) DO NOTHING`,
+		questionID,
+		userID,
+		date,
+		timeTaken,
+		confidenceLevel,
+	)
+
+	return err
+}
+
+// GetAllQuestionsPastReviewDate implements QuestionRepository.
+func (r QuestionPostgresRepository) GetAllQuestionsPastReviewDate(limit uint) ([]models.Question, error) {
+	var questions []models.Question
+	return questions, nil
 }
 
 func NewQuestionPostgresRepository(db *sql.DB) *QuestionPostgresRepository {
@@ -41,8 +64,30 @@ func (r QuestionPostgresRepository) GetQuestionByID(ID int) (*models.Question, e
 	}
 }
 
-func (r QuestionPostgresRepository) GetQuestionSubmissions() ([]models.QuestionSubmission, error) {
+func (r QuestionPostgresRepository) GetQuestionStatsByID(ID int) (*models.QuestionSubmissionUserStats, error) {
+	return nil, nil
+}
+
+func (r QuestionPostgresRepository) GetQuestionSubmissions(questionID int) ([]models.QuestionSubmission, error) {
+	rows, err := r.db.Query(
+		"SELECT id, questionID, submissionDate, confidenceLevel FROM questionSubmissions WHERE questionId = $1 ORDER BY submissionDate DESC",
+		questionID,
+	)
+	if err != nil {
+		return []models.QuestionSubmission{}, err
+	}
+	defer rows.Close()
+
 	var submissions []models.QuestionSubmission
+	for rows.Next() {
+		var sub models.QuestionSubmission
+
+		if err := rows.Scan(&sub.ID, &sub.QuestionID, &sub.Date, &sub.ConfidenceLevel); err != nil {
+			return []models.QuestionSubmission{}, nil
+		}
+
+		submissions = append(submissions, sub)
+	}
 
 	return submissions, nil
 }

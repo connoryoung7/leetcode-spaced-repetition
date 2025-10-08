@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -53,6 +54,7 @@ type QuestionSubmissionUserStats struct {
 	UserID           uuid.UUID     `json:"userID"`
 	NumOfSubmissions uint          `json:"numOfSubmissions"`
 	AvgDuration      time.Duration `json:"avgDuration"`
+	NextReviewDate   time.Time     `json:"nextReviewDate"`
 }
 
 func DetermineDifficulty(val int) (QuestionDifficulty, error) {
@@ -61,4 +63,17 @@ func DetermineDifficulty(val int) (QuestionDifficulty, error) {
 	}
 
 	return QuestionDifficulty(val), nil
+}
+
+func DetermineConfidenceLevelFromString(valStr string) (ConfidenceLevel, error) {
+	val, err := strconv.ParseInt(valStr, 10, 0)
+	if err != nil {
+		return VeryHighConfidence, err
+	}
+
+	if val < int64(VeryLowConfidence) && val > int64(VeryHighConfidence) {
+		return VeryHighConfidence, fmt.Errorf("%d is not recognized as a valid difficulty level", val)
+	}
+
+	return ConfidenceLevel(val), nil
 }
