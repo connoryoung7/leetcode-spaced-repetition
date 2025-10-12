@@ -45,6 +45,7 @@ type QuestionSubmission struct {
 	ID              uuid.UUID       `json:"id"`
 	QuestionID      int             `json:"questionId"`
 	Date            time.Time       `json:"date"`
+	TimeTaken       uint            `json:"timeTaken"`
 	ConfidenceLevel ConfidenceLevel `json:"confidenceLevel"`
 }
 

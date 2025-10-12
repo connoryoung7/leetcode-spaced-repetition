@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"leetcode-spaced-repetition/models"
 	"leetcode-spaced-repetition/services"
 	"regexp"
@@ -23,7 +22,7 @@ type leetCodeQuestionRequest struct {
 type saveQuestionSubmissionRequest struct {
 	QuestionID      int `json:"questionId" binding:"required,number"`
 	TimeTaken       int `json:"timeTaken" binding:"required,number"`
-	ConfidenceLevel int `json:"confidenceLevel"`
+	ConfidenceLevel int `json:"confidenceLevel" binding:"required,number"`
 }
 
 var validDate validator.Func = func(fl validator.FieldLevel) bool {
@@ -117,7 +116,6 @@ func (c QuestionsController) getQuestionSubmissionsByID(context *gin.Context) {
 		int(questionId),
 	)
 	if err != nil {
-		fmt.Printf("err: %s\n", err.Error())
 		context.JSON(500, gin.H{
 			"error": "An internal server error occurred.",
 		})
@@ -138,7 +136,6 @@ func (c QuestionsController) getQuestionSubmissionsByID(context *gin.Context) {
 func (c QuestionsController) GetAllQuestionTags(context *gin.Context) {
 	tags, err := c.questionsService.GetAllQuestionTags(context)
 	if err != nil {
-		fmt.Printf(err.Error())
 		context.JSON(500, gin.H{
 			"error": "An internal server error has occurred.",
 		})
@@ -164,7 +161,7 @@ func (c QuestionsController) SaveQuestionSubmission(context *gin.Context) {
 		questionSubmissionRequest.QuestionID,
 		uuid.New(),
 		time.Now(),
-		time.Duration(questionSubmissionRequest.TimeTaken),
+		time.Duration(questionSubmissionRequest.TimeTaken*int(time.Second)),
 		models.ConfidenceLevel(questionSubmissionRequest.ConfidenceLevel),
 	); err != nil {
 		context.JSON(500, gin.H{

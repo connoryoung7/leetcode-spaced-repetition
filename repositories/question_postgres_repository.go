@@ -16,6 +16,7 @@ type QuestionPostgresRepository struct {
 
 // SaveQuestionSubmission implements QuestionRepository.
 func (r QuestionPostgresRepository) SaveQuestionSubmission(c context.Context, questionID int, userID uuid.UUID, date time.Time, timeTaken time.Duration, confidenceLevel models.ConfidenceLevel) error {
+	fmt.Printf("timeTaken = %d\n", int(timeTaken.Seconds()))
 	_, err := r.db.Exec(
 		`INSERT INTO questionSubmissions (questionId, userId, submissionDate, timeTaken, confidenceLevel) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (questionId, userId, submissionDate) DO NOTHING`,
 		questionID,
@@ -72,7 +73,7 @@ func (r QuestionPostgresRepository) GetQuestionStatsByID(c context.Context, ID i
 
 func (r QuestionPostgresRepository) GetQuestionSubmissions(c context.Context, questionID int) ([]models.QuestionSubmission, error) {
 	rows, err := r.db.Query(
-		"SELECT id, questionID, submissionDate, confidenceLevel FROM questionSubmissions WHERE questionId = $1 ORDER BY submissionDate DESC",
+		"SELECT id, questionID, submissionDate, EXTRACT(EPOCH  FROM timeTaken), confidenceLevel FROM questionSubmissions WHERE questionId = $1 ORDER BY submissionDate DESC",
 		questionID,
 	)
 	if err != nil {
@@ -84,8 +85,8 @@ func (r QuestionPostgresRepository) GetQuestionSubmissions(c context.Context, qu
 	for rows.Next() {
 		var sub models.QuestionSubmission
 
-		if err := rows.Scan(&sub.ID, &sub.QuestionID, &sub.Date, &sub.ConfidenceLevel); err != nil {
-			return []models.QuestionSubmission{}, nil
+		if err := rows.Scan(&sub.ID, &sub.QuestionID, &sub.Date, &sub.TimeTaken, &sub.ConfidenceLevel); err != nil {
+			return []models.QuestionSubmission{}, err
 		}
 
 		submissions = append(submissions, sub)
