@@ -1,0 +1,38 @@
+package internal
+
+import (
+	"log"
+
+	"github.com/joho/godotenv"
+	"github.com/kelseyhightower/envconfig"
+)
+
+type Config struct {
+	Debug      bool
+	AppPort    uint `envconfig:"APP_PORT"`
+	PostgresDB struct {
+		URL      string `envconfig:"POSTGRES_URL" required:"true"`
+		Username string `envconfig:"POSTGRES_USERNAME" required:"true"`
+		Password string `envconfig:"POSTGRES_PASSWORD" required:"true"`
+		DB       string `envconfig:"POSTGRES_DB" required:"true"`
+	}
+}
+
+func GetConfig() (Config, error) {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	var config Config
+	err = envconfig.Process("", &config)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	return config, nil
+}
