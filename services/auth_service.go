@@ -13,7 +13,7 @@ type AuthService struct {
 
 type newUser struct {
 	email    string `validate:"email"`
-	password string `validate:""`
+	password string `v`
 }
 
 func NewAuthService() *AuthService {
@@ -38,8 +38,13 @@ func (a AuthService) Logout() {
 
 }
 
-func (a AuthService) RegisterUser(email string, password string) {
+func (a AuthService) RegisterUser(ctx context.Context, email string, password string) error {
+	hash, err := a.hashAndSaltPassword(password)
+	if err != nil {
+		return err
+	}
 
+	return a.userRepository.CreateUser(ctx, email, hash)
 }
 
 func (a AuthService) hashAndSaltPassword(plainPassword string) (string, error) {

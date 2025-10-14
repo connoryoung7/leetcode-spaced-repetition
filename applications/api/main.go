@@ -11,6 +11,7 @@ import (
 
 	ginprometheus "github.com/zsais/go-gin-prometheus"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,8 +20,6 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Printf("config: %+v\n", config)
 
 	db, err := internal.GetDBConnFromConfig(config)
 	if err != nil {
@@ -37,6 +36,8 @@ func main() {
 	questionsService := services.NewQuestionsService(questionsRepo)
 
 	router := gin.Default()
+	router.Use(cors.Default()) // All origins allowed by default
+	router.Run()
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
