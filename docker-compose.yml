@@ -20,6 +20,13 @@ services:
       - 8080:8080
     networks:
       - app-network
+  
+  # app:
+  #   container_name: leetcode-buddy-app
+  #   build:
+  #     dockerfile: Dockerfile
+  #     context: ./frontend/leetcode-buddy-app
+  #   restart: unless-stopped
 
   api:
     build:

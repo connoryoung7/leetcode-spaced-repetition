@@ -37,7 +37,7 @@ func main() {
 
 	router := gin.Default()
 	router.Use(cors.Default()) // All origins allowed by default
-	router.Run()
+	fmt.Println("CORS is enabled....")
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
