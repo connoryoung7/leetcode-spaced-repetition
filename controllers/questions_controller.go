@@ -16,13 +16,13 @@ import (
 const dateRegexString = `^\d{4}-\d{2}-\d{2}T\d{2}`
 
 type leetCodeQuestionRequest struct {
-	ID string `uri:"id" binding:"required,number"`
+	ID string `uri:"id" binding:"required,number" validate:"gte=1"`
 }
 
 type saveQuestionSubmissionRequest struct {
-	QuestionID      int `json:"questionId" binding:"required,number"`
-	TimeTaken       int `json:"timeTaken" binding:"required,number"`
-	ConfidenceLevel int `json:"confidenceLevel" binding:"required,number"`
+	QuestionID      int `json:"questionId" binding:"required,number" validate:"gte=1"`
+	TimeTaken       int `json:"timeTaken" binding:"required,number" validate:"gte=0"`
+	ConfidenceLevel int `json:"confidenceLevel" binding:"required,number" validate:"gte=1,lte=5"`
 }
 
 var validDate validator.Func = func(fl validator.FieldLevel) bool {
