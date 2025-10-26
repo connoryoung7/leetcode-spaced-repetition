@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"fmt"
 	"leetcode-spaced-repetition/models"
 	"leetcode-spaced-repetition/services"
+	"net/http"
 	"regexp"
 	"strconv"
 	"time"
@@ -47,12 +49,36 @@ func RegisterRoutes(r *gin.Engine, questionsService *services.QuestionService) {
 	questionsController := QuestionsController{questionsService: *questionsService}
 
 	questionsGroup := r.Group("/questions")
+	questionsGroup.GET("", questionsController.getQuestions)
 	questionsGroup.GET("tags", questionsController.GetAllQuestionTags)
 	questionsGroup.POST("submissions", questionsController.SaveQuestionSubmission)
 	questionsGroup.GET(":id", questionsController.GetQuestionByID)
 
 	individualQuestionsGroup := questionsGroup.Group(":id")
 	individualQuestionsGroup.GET("submissions", questionsController.getQuestionSubmissionsByID)
+}
+
+func (c QuestionsController) getQuestions(ctx *gin.Context) {
+	tags, _ := ctx.GetQueryArray("tags")
+
+	questions, err := c.questionsService.GetQuestions(ctx, tags, 1, 100)
+	if err != nil {
+		fmt.Printf("err:", err.Error())
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "An error has occurred.",
+		})
+		return
+	}
+
+	resp := models.Pagaination[models.Question]{
+		Data: questions,
+	}
+
+	if len(questions) == 0 {
+		resp.Data = make([]models.Question, 0)
+	}
+
+	ctx.JSON(http.StatusOK, resp)
 }
 
 func (c QuestionsController) GetQuestionByID(context *gin.Context) {

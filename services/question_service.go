@@ -19,6 +19,10 @@ func NewQuestionsService(questionsRepo repositories.QuestionRepository) *Questio
 	}
 }
 
+func (s QuestionService) GetQuestions(ctx context.Context, tags []string, page int, limit int) ([]models.Question, error) {
+	return s.questionRepo.GetQuestions(ctx, tags, page, limit)
+}
+
 func (s QuestionService) GetQuestionByID(c context.Context, ID int) (*models.Question, error) {
 	return s.questionRepo.GetQuestionByID(c, ID)
 }

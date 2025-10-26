@@ -1,4 +1,5 @@
 import axios from 'axios';
+import qs from 'qs';
 
 const instance = axios.create({
     baseURL: "http://localhost:8000",
@@ -15,12 +16,23 @@ export const getQuestionByID = async (questionID: string) => {
     return response.data
 }
 
-export const getAllQuestions = async (topics: string[]) => {
+export const getAllQuestions = async (tags: string[]) => {
     const response = await instance.get("/questions", {
         params: {
-            topics
+            "tags": tags
+        },
+        paramsSerializer: params => {
+            return qs.stringify(params, {
+                arrayFormat: "repeat"
+            })
         }
     })
+
+    return response.data
+}
+
+export const getQuestionSubmissions = async (id: number) => {
+    const response = await instance.get(`/questions/${id}/submissions`)
 
     return response.data
 }

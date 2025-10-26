@@ -1,14 +1,44 @@
 import { useEffect, useState } from "react";
 
-import { getAllQuestionTags } from "../api";
+import { getAllQuestions, getAllQuestionTags } from "../api";
 import { Badge } from "../components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { cn } from "../lib/utils";
+import { Button } from "../components/ui/button";
 
 const baseBadgeClass = "cursor-pointer"
+
+const convertNumToDifficulty = (val: number) => {
+    switch (val) {
+        case 1:
+            return "Easy"
+        case 2:
+            return "Medium"
+        case 3:
+            return "Difficult"
+        default:
+            return "N/A"
+    }
+}
+
+const generateLinkForLeetcode = (slug: string) => {
+    return `https://leetcode.com/problems/${slug}/`
+}
 
 const QuestionsPage = () => {
     const [tags, setTags] = useState<string[]>([])
     const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set())
+    const [questions, setQuestions] = useState<any[]>([])
+    const [isMetaSelected, setIsCtrlSelected] = useState<boolean>(false)
+
     useEffect(() => {
         (async () => {
             const data = await getAllQuestionTags()
@@ -17,10 +47,59 @@ const QuestionsPage = () => {
         })()
     }, [])
 
-    console.log("selectedTags:", selectedTags);
+    useEffect(() => {
+        (
+            async () => {
+                const data = await getAllQuestions(Array.from(selectedTags))
+                console.log("data =", data)
+                setQuestions(data?.data || []);
+            }
+        )()
+
+        const handleDownPress = (event: KeyboardEvent) => {
+            if (event.metaKey) {
+                setIsCtrlSelected(true)
+                console.log("ctrl key pressed")
+            }
+        }
+
+        const handleUpPress = (event: KeyboardEvent) => {
+            if (event.metaKey) {
+                setIsCtrlSelected(true)
+            } else {
+                setIsCtrlSelected(false)
+                console.log("ctrl key unpressed")
+            }
+        }
+
+        window.addEventListener("keyup", handleUpPress)
+        window.addEventListener("keydown", handleDownPress)
+
+        return () => {
+            window.removeEventListener("keyup", handleUpPress)
+            window.removeEventListener("keydown", handleDownPress)
+        }
+    }, [selectedTags])
+
+    const handleTopicClick = (tag: string) => {
+        if (isMetaSelected) {
+            if (selectedTags.has(tag)) {
+                setSelectedTags(
+                    new Set([...selectedTags].filter(t => t !== tag))
+                )
+            } else {
+                console.log("adding tag:", tag)
+                setSelectedTags(
+                    new Set([...selectedTags, tag])
+                )        
+            }
+        } else {
+            setSelectedTags(new Set([tag]))
+        }
+    }
 
     return (
-        <div>
+        <div className="absolute inset-0 w-9/10 mx-auto">
             <div>Questions Page</div>
             <div>
                 {
@@ -28,24 +107,44 @@ const QuestionsPage = () => {
                         <Badge
                             key={tag}
                             variant={(selectedTags.has(tag)) ? "secondary" : "outline"}
-                            onClick={() => {
-                                console.log("tag being clicked is:", tag)
-                                if (selectedTags.has(tag)) {
-                                    setSelectedTags(
-                                        new Set([...selectedTags].filter(t => t !== tag))
-                                    )
-                                } else {
-                                    console.log("adding tag:", tag)
-                                    setSelectedTags(
-                                        new Set([...selectedTags, tag])
-                                    )
-                                }
-                            }}
+                            onClick={() => handleTopicClick(tag)}
                             className={selectedTags.has(tag) ? cn("bg-blue-500", "text-white", baseBadgeClass) : baseBadgeClass}>
                                 {tag}
                         </Badge>
                     ))
                 }
+            </div>
+            <Button className="my-4" variant="outline" onClick={() => setSelectedTags(new Set([]))}>Clear Topics</Button>
+            <div>
+                <Table>
+                    {
+                        (selectedTags.size  === 0) ?
+                        <TableCaption>Please select a topic</TableCaption> :
+                        null
+                    }
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead className="w-[100px]">Question #</TableHead>
+                            <TableHead className="w-[100px] text-left">Title</TableHead>
+                            <TableHead className="text-left">Difficulty</TableHead>
+                            <TableHead className="text-left">Open Link in LeetCode</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {
+                            questions.map(question => (
+                                <TableRow>
+                                    <TableCell className="text-left">{question.id}</TableCell>
+                                    <TableCell className="font-medium text-left">{question.title}</TableCell>
+                                    <TableCell className="text-left">{convertNumToDifficulty(question.difficulty)}</TableCell>
+                                    <TableCell className="text-left">
+                                        <a href={generateLinkForLeetcode(question.slug)} target="_blank">Open</a>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        }
+                    </TableBody>
+                </Table>
             </div>
         </div>
     );

@@ -1,11 +1,9 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 
-import { createRootRoute, createRoute, createRouter, RouterProvider } from '@tanstack/react-router'
+import { createRootRoute, createRoute, createRouter, RouterProvider, Outlet } from '@tanstack/react-router'
 import QuestionSubmissionPage from './pages/QuestionSubmissionPage'
 import QuestionsPage from './pages/QuestionsPage'
+import QuestionMetadataPage from './pages/QuestionMetadataPage'
 
 const rootRoute = createRootRoute()
 const indexRoute = createRoute({
@@ -15,11 +13,29 @@ const indexRoute = createRoute({
 })
 const questionsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/questions',
-  component: () => <QuestionsPage />
+  path: 'questions',
+  component: () => <Outlet />
 })
 
-const routeTree = rootRoute.addChildren([indexRoute, questionsRoute])
+const questionsListRoute = createRoute({
+  getParentRoute: () => questionsRoute,
+  path: '/',
+  component: () => <QuestionsPage />,
+})
+
+const questionMetadataRoute = createRoute({
+  getParentRoute: () => questionsRoute,
+  path: '$questionId',
+  component: () => <QuestionMetadataPage />
+})
+
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  questionsRoute.addChildren([
+    questionsListRoute,
+    questionMetadataRoute
+  ])
+])
 const router = createRouter({ routeTree })
 
 export default function App() {
