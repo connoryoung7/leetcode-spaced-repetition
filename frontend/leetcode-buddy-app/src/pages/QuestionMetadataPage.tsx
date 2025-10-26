@@ -4,7 +4,6 @@ import { useParams } from '@tanstack/react-router'
 import { Spinner } from "../components/ui/spinner"
 
 import { useQuestionSubmissions } from "../hooks/api"
-// import { TableHeader } from '../components/ui/table'
 
 import {
   Table,
