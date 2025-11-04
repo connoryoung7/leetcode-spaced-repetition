@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { getAllQuestions, getAllQuestionTags } from "../api";
+import { getAllQuestions } from "../api";
 import { Badge } from "../components/ui/badge";
 import {
   Table,
@@ -119,7 +119,7 @@ const QuestionsPage = () => {
                 <Table>
                     {
                         (selectedTags.size  === 0) ?
-                        <TableCaption>Please select a topic</TableCaption> :
+                        <TableCaption>Please select a topic.</TableCaption> :
                         null
                     }
                     <TableHeader>
