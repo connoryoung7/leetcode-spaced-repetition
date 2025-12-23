@@ -5,6 +5,7 @@ import QuestionSubmissionPage from './pages/QuestionSubmissionPage'
 import QuestionsPage from './pages/QuestionsPage'
 import QuestionMetadataPage from './pages/QuestionMetadataPage'
 import ListQuestionSubmissionsPage from './pages/ListQuestionSubmissionsPage'
+import { Toaster } from 'sonner'
 
 const rootRoute = createRootRoute()
 const indexRoute = createRoute({
@@ -46,5 +47,10 @@ const routeTree = rootRoute.addChildren([
 const router = createRouter({ routeTree })
 
 export default function App() {
-  return <RouterProvider router={router} />
+  return (
+    <>
+      <Toaster position="top-right" richColors />
+      <RouterProvider router={router} />
+    </>
+  )
 }

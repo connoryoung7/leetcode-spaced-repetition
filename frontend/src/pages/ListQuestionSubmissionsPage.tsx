@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { useNavigate, Link } from "@tanstack/react-router";
-import { useQuestionSubmissions } from "../hooks/api";
+// import { useQuestionSubmissions } from "../hooks/api";
 import { getQuestionSubmissionsV2 } from "../api";
 
 const convertNumToDifficulty = (val: number) => {

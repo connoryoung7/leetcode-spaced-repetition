@@ -192,7 +192,7 @@ func (c QuestionsController) SaveQuestionSubmission(context *gin.Context) {
 		return
 	}
 
-	context.JSON(200, gin.H{
+	context.JSON(201, gin.H{
 		"message": "Successfully saved question submission",
 	})
 }

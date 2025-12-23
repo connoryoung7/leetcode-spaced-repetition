@@ -4,21 +4,18 @@ import { z } from 'zod';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from "@hookform/resolvers/zod"
 import parse from 'parse-duration'
+import { toast } from "sonner"
 
+
+import type { ConfidenceLevel as ConfidenceLevelType } from '../models/Question';
+import { ConfidenceLevel } from '../models/Question';
 import { Input } from '../components/ui/input';
 import { Slider } from '../components/ui/slider';
 import { Field, FieldGroup, FieldLabel } from '../components/ui/field';
 import { Button } from '../components/ui/button';
 import { createQuestionSubmission } from '../api';
 
-enum ConfidenceLevel {
-    VeryLow = 1,
-    Low = 2,
-    Medium = 3,
-    High = 4,
-}
-
-const ConfidenceLevelMemes = [
+const ConfidenceLevelMemes: { level: ConfidenceLevelType; meme: string; text: string }[] = [
     {
         level: ConfidenceLevel.VeryLow,
         meme: "simpsons_repeat_stuff.gif",
@@ -30,7 +27,7 @@ const ConfidenceLevelMemes = [
         text: "I see how they did it, but I did not see that coming"
     },
     {
-        level: ConfidenceLevel.High,
+        level: ConfidenceLevel.Medium,
         meme: "exploding_brain.gif",
         text: "Things are starting to click..."
     },
@@ -62,6 +59,8 @@ const QuestionSubmissionPage: React.FC = () => {
             data.confidenceLevel,
             data.timeTaken
         )
+        toast.success("Question submission created!")
+        form.reset()
     }
 
     return (

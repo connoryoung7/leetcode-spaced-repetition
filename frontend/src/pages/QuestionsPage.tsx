@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate, Link } from "@tanstack/react-router";
 
 import { getAllQuestions } from "../api";
 import { Badge } from "../components/ui/badge";
@@ -13,8 +14,8 @@ import {
 } from "@/components/ui/table"
 import { cn } from "../lib/utils";
 import { Button } from "../components/ui/button";
-import { useNavigate, Link } from "@tanstack/react-router";
 import { useQuestionTags } from "../hooks/api";
+import { generateLinkForLeetcode } from "../lib/leetcodeUtils";
 
 const baseBadgeClass = "cursor-pointer"
 
@@ -29,10 +30,6 @@ const convertNumToDifficulty = (val: number) => {
         default:
             return "N/A"
     }
-}
-
-const generateLinkForLeetcode = (slug: string) => {
-    return `https://leetcode.com/problems/${slug}/`
 }
 
 const QuestionsPage = () => {
@@ -56,7 +53,6 @@ const QuestionsPage = () => {
         const handleDownPress = (event: KeyboardEvent) => {
             if (event.metaKey) {
                 setIsCtrlSelected(true)
-                console.log("ctrl key pressed")
             }
         }
 
@@ -65,7 +61,6 @@ const QuestionsPage = () => {
                 setIsCtrlSelected(true)
             } else {
                 setIsCtrlSelected(false)
-                console.log("ctrl key unpressed")
             }
         }
 
