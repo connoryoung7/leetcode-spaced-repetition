@@ -27,8 +27,8 @@ func (s QuestionService) GetQuestionByID(c context.Context, ID int) (*models.Que
 	return s.questionRepo.GetQuestionByID(c, ID)
 }
 
-func (s QuestionService) GetQuestionSubmissions(c context.Context, questionId int) ([]models.QuestionSubmission, error) {
-	return s.questionRepo.GetQuestionSubmissions(c, questionId)
+func (s QuestionService) GetQuestionSubmissions(c context.Context, questionIDs []int) ([]models.QuestionSubmissionWithDetails, error) {
+	return s.questionRepo.GetQuestionSubmissions(c, questionIDs)
 }
 
 func (s QuestionService) GetAllQuestionTags(c context.Context) ([]string, error) {
@@ -44,7 +44,7 @@ func (s QuestionService) GetAllQuestionsPastReviewDate(c context.Context, limit 
 }
 
 func (s QuestionService) GetAllSubmissionsForQuestion(c context.Context, questionID int) ([]models.QuestionSubmission, error) {
-	submissions, err := s.questionRepo.GetQuestionSubmissions(c, questionID)
+	submissions, err := s.questionRepo.GetSubmissionsByQuestionID(c, questionID)
 	if err != nil {
 		return []models.QuestionSubmission{}, err
 	}

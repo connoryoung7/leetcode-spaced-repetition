@@ -37,6 +37,23 @@ export const getQuestionSubmissions = async (id: number) => {
     return response.data
 }
 
+export const getQuestionSubmissionsV2 = async (questionIds: number[]) => {
+    const response = await instance.get('/questions/submissions',
+        {
+            params: {
+                questionId: questionIds
+            },
+            paramsSerializer: params => {
+                return qs.stringify(params, {
+                    arrayFormat: "comma"
+                })
+            }
+        }
+    )
+
+    return response.data
+}
+
 export const createQuestionSubmission
     = async (questionID: number, confidenceLevel: number, timeTaken?: number) => {
     const response = await instance.post(`/questions/submissions`, {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Table,
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table"
 import { useNavigate, Link } from "@tanstack/react-router";
 import { useQuestionSubmissions } from "../hooks/api";
+import { getQuestionSubmissionsV2 } from "../api";
 
 const convertNumToDifficulty = (val: number) => {
     switch (val) {
@@ -35,9 +36,15 @@ const ListQuestionSubmissionsPage = () => {
 
     const navigate = useNavigate({ from: '/questions' })
 
-    const { data, isLoading, error } = useQuestionSubmissions()
-
-    console.log("data =", data)
+    useEffect(() => {
+        (
+            async () => {
+                const data = await getQuestionSubmissionsV2([])
+                console.log("data =", data)
+                setQuestions(data?.data || []);
+            }
+        )()
+    }, [])
 
     return (
         <div className="absolute inset-0 w-9/10 mx-auto">

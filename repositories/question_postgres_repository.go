@@ -42,12 +42,6 @@ func (r QuestionPostgresRepository) SaveQuestionSubmission(c context.Context, qu
 		return err
 	}
 
-	// card, err := r.getQuestionCard(c, tx, questionID, userID)
-	// if err != nil {
-	// 	return err
-	// }
-	// utils.ApplyReview(card, int(confidenceLevel), date)
-
 	return tx.Commit()
 }
 
@@ -113,10 +107,106 @@ func (r QuestionPostgresRepository) GetQuestionStatsByID(ctx context.Context, ID
 	return nil, nil
 }
 
-func (r QuestionPostgresRepository) GetQuestionSubmissions(ctx context.Context, questionID int) ([]models.QuestionSubmission, error) {
+func (r QuestionPostgresRepository) GetQuestionSubmissions(ctx context.Context, questionID []int) ([]models.QuestionSubmissionWithDetails, error) {
+	var submissions []models.QuestionSubmissionWithDetails
+	if len(questionID) == 0 {
+		rows, err := r.db.QueryContext(
+			ctx,
+			`SELECT
+				questionSubmissions.id,
+				questionSubmissions.questionId,
+				submissionDate,
+				EXTRACT(EPOCH  FROM timeTaken),
+				confidenceLevel,
+				questions.title,
+				questions.description
+			FROM questionSubmissions
+			JOIN questions ON questionSubmissions.questionId = questions.id
+			ORDER BY submissionDate DESC`,
+		)
+		if err != nil {
+			return []models.QuestionSubmissionWithDetails{}, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var sub models.QuestionSubmissionWithDetails
+
+			fmt.Printf("rows.Next()\n")
+
+			if err := rows.Scan(
+				&sub.ID,
+				&sub.Question.ID,
+				&sub.SubmittedAt,
+				&sub.TimeTaken,
+				&sub.ConfidenceLevel,
+				&sub.Question.Title,
+				&sub.Question.Description,
+			); err != nil {
+				return []models.QuestionSubmissionWithDetails{}, err
+			}
+
+			submissions = append(submissions, sub)
+		}
+
+		return submissions, nil
+	} else {
+		rows, err := r.db.QueryContext(
+			ctx,
+			`SELECT
+				questionSubmissions.id,
+				questionSubmissions.questionId,
+				submissionDate,
+				EXTRACT(EPOCH  FROM timeTaken),
+				confidenceLevel,
+				questions.title,
+				questions.description
+			FROM questionSubmissions
+			JOIN questions ON questionSubmissions.questionId = questions.id WHERE questionId = ANY($1)
+			ORDER BY submissionDate DESC`,
+			pq.Array(questionID),
+		)
+		if err != nil {
+			return []models.QuestionSubmissionWithDetails{}, err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var sub models.QuestionSubmissionWithDetails
+
+			if err := rows.Scan(
+				&sub.ID,
+				&sub.Question.ID,
+				&sub.SubmittedAt,
+				&sub.TimeTaken,
+				&sub.ConfidenceLevel,
+				&sub.Question.Title,
+				&sub.Question.Description,
+			); err != nil {
+				return []models.QuestionSubmissionWithDetails{}, err
+			}
+
+			submissions = append(submissions, sub)
+		}
+
+		return submissions, nil
+	}
+}
+
+func (r QuestionPostgresRepository) GetSubmissionsByQuestionID(c context.Context, questionID int) ([]models.QuestionSubmission, error) {
+	var submissions []models.QuestionSubmission
+
 	rows, err := r.db.QueryContext(
-		ctx,
-		"SELECT id, questionID, submissionDate, EXTRACT(EPOCH  FROM timeTaken), confidenceLevel FROM questionSubmissions WHERE questionId = $1 ORDER BY submissionDate DESC",
+		c,
+		`SELECT
+			id,
+			questionId,
+			submissionDate,
+			EXTRACT(EPOCH  FROM timeTaken),
+			confidenceLevel
+		FROM questionSubmissions
+		WHERE questionId = $1
+		ORDER BY submissionDate DESC`,
 		questionID,
 	)
 	if err != nil {
@@ -124,11 +214,16 @@ func (r QuestionPostgresRepository) GetQuestionSubmissions(ctx context.Context, 
 	}
 	defer rows.Close()
 
-	var submissions []models.QuestionSubmission
 	for rows.Next() {
 		var sub models.QuestionSubmission
 
-		if err := rows.Scan(&sub.ID, &sub.QuestionID, &sub.Date, &sub.TimeTaken, &sub.ConfidenceLevel); err != nil {
+		if err := rows.Scan(
+			&sub.ID,
+			&sub.QuestionID,
+			&sub.Date,
+			&sub.TimeTaken,
+			&sub.ConfidenceLevel,
+		); err != nil {
 			return []models.QuestionSubmission{}, err
 		}
 

@@ -6,7 +6,6 @@ import (
 	"leetcode-spaced-repetition/services"
 	"net/http"
 	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +17,11 @@ import (
 const dateRegexString = `^\d{4}-\d{2}-\d{2}T\d{2}`
 
 type leetCodeQuestionRequest struct {
-	ID string `uri:"id" binding:"required,number" validate:"gte=1"`
+	ID int `uri:"id" binding:"required,number" validate:"gte=1"`
+}
+
+type getSubmissionsRequest struct {
+	QuestionID []int `form:"questionId" collection_format:"csv" default:""`
 }
 
 type saveQuestionSubmissionRequest struct {
@@ -51,11 +54,12 @@ func RegisterRoutes(r *gin.Engine, questionsService *services.QuestionService) {
 	questionsGroup := r.Group("/questions")
 	questionsGroup.GET("", questionsController.getQuestions)
 	questionsGroup.GET("tags", questionsController.GetAllQuestionTags)
+	questionsGroup.GET("submissions", questionsController.getQuestionSubmissions)
 	questionsGroup.POST("submissions", questionsController.SaveQuestionSubmission)
 	questionsGroup.GET(":id", questionsController.GetQuestionByID)
 
 	individualQuestionsGroup := questionsGroup.Group(":id")
-	individualQuestionsGroup.GET("submissions", questionsController.getQuestionSubmissionsByID)
+	individualQuestionsGroup.GET("submissions", questionsController.getQuestionSubmissions)
 }
 
 func (c QuestionsController) getQuestions(ctx *gin.Context) {
@@ -90,15 +94,9 @@ func (c QuestionsController) GetQuestionByID(context *gin.Context) {
 		return
 	}
 
-	intId, err := strconv.Atoi(request.ID)
-	if err != nil {
-		context.JSON(400, gin.H{
-			"error": "The id of the question must be a valid integer.",
-		})
-		return
-	}
+	questionID := request.ID
 
-	question, err := c.questionsService.GetQuestionByID(context, intId)
+	question, err := c.questionsService.GetQuestionByID(context, questionID)
 	if err != nil {
 		context.JSON(500, gin.H{
 			"error": "An internal server has occurred.",
@@ -112,7 +110,7 @@ func (c QuestionsController) GetQuestionByID(context *gin.Context) {
 		return
 	}
 
-	tags, err := c.questionsService.GetTagsForQuestion(context, intId)
+	tags, err := c.questionsService.GetTagsForQuestion(context, questionID)
 	if err != nil {
 		context.JSON(500, gin.H{
 			"error": "An internal server error has occurred.",
@@ -125,9 +123,8 @@ func (c QuestionsController) GetQuestionByID(context *gin.Context) {
 	context.JSON(200, *question)
 }
 
-func (c QuestionsController) getQuestionSubmissionsByID(context *gin.Context) {
+func (c QuestionsController) getQuestionSubmissions(context *gin.Context) {
 	var request leetCodeQuestionRequest
-
 	if err := context.ShouldBindUri(&request); err != nil {
 		context.JSON(400, gin.H{
 			"error": "The id of the question must be a valid integer.",
@@ -135,13 +132,12 @@ func (c QuestionsController) getQuestionSubmissionsByID(context *gin.Context) {
 		return
 	}
 
-	questionId, _ := strconv.ParseInt(request.ID, 10, 0)
-
 	result, err := c.questionsService.GetAllSubmissionsForQuestion(
 		context,
-		int(questionId),
+		request.ID,
 	)
 	if err != nil {
+		fmt.Printf("err = %+v\n", err)
 		context.JSON(500, gin.H{
 			"error": "An internal server error occurred.",
 		})

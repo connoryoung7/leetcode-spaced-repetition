@@ -50,6 +50,19 @@ type (
 		ConfidenceLevel ConfidenceLevel `json:"confidenceLevel"`
 	}
 
+	QuestionSubmissionWithDetails struct {
+		ID              uuid.UUID `json:"id"`
+		SubmittedAt     time.Time `json:"submittedAt"`
+		TimeTaken       uint      `json:"timeTaken"`
+		ConfidenceLevel int       `json:"confidenceLevel"`
+		Question        struct {
+			ID          int                `json:"id"`
+			Title       string             `json:"title"`
+			Description string             `json:"description"`
+			Difficulty  QuestionDifficulty `json:"difficulty"`
+		} `json:"question"`
+	}
+
 	QuestionSubmissionUserStats struct {
 		ID               uuid.UUID     `json:"id"`
 		QuestionID       int           `json:"questionID"`
