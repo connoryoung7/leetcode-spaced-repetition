@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	fsrs "github.com/open-spaced-repetition/go-fsrs"
 )
 
 type QuestionDifficulty int
@@ -23,40 +24,46 @@ const (
 	LowConfidence
 	MediumConfidence
 	HighConfidence
-	VeryHighConfidence
 )
 
-type Question struct {
-	ID          int                `json:"id"`
-	Tags        []string           `json:"tags"`
-	Title       string             `json:"title"`
-	Slug        string             `json:"slug"`
-	Description string             `json:"description"`
-	Difficulty  QuestionDifficulty `json:"difficulty"`
-}
+type (
+	Question struct {
+		ID          int                `json:"id"`
+		Tags        []string           `json:"tags"`
+		Title       string             `json:"title"`
+		Slug        string             `json:"slug"`
+		Description string             `json:"description"`
+		Difficulty  QuestionDifficulty `json:"difficulty"`
+	}
 
-type QuestionTag struct {
-	ID         int    `json:"id"`
-	QuestionID int    `json:"questionId"`
-	Tag        string `json:"tag"`
-}
+	QuestionTag struct {
+		ID         int    `json:"id"`
+		QuestionID int    `json:"questionId"`
+		Tag        string `json:"tag"`
+	}
 
-type QuestionSubmission struct {
-	ID              uuid.UUID       `json:"id"`
-	QuestionID      int             `json:"questionId"`
-	Date            time.Time       `json:"date"`
-	TimeTaken       uint            `json:"timeTaken"`
-	ConfidenceLevel ConfidenceLevel `json:"confidenceLevel"`
-}
+	QuestionSubmission struct {
+		ID              uuid.UUID       `json:"id"`
+		QuestionID      int             `json:"questionId"`
+		Date            time.Time       `json:"date"`
+		TimeTaken       uint            `json:"timeTaken"`
+		ConfidenceLevel ConfidenceLevel `json:"confidenceLevel"`
+	}
 
-type QuestionSubmissionUserStats struct {
-	ID               uuid.UUID     `json:"id"`
-	QuestionID       int           `json:"questionID"`
-	UserID           uuid.UUID     `json:"userID"`
-	NumOfSubmissions uint          `json:"numOfSubmissions"`
-	AvgDuration      time.Duration `json:"avgDuration"`
-	NextReviewDate   time.Time     `json:"nextReviewDate"`
-}
+	QuestionSubmissionUserStats struct {
+		ID               uuid.UUID     `json:"id"`
+		QuestionID       int           `json:"questionID"`
+		UserID           uuid.UUID     `json:"userID"`
+		NumOfSubmissions uint          `json:"numOfSubmissions"`
+		AvgDuration      time.Duration `json:"avgDuration"`
+		NextReviewDate   time.Time     `json:"nextReviewDate"`
+	}
+
+	QuestionCard struct {
+		QuestionID uuid.UUID `json:"questionID"`
+		Card       fsrs.Card `json:"card"`
+	}
+)
 
 func DetermineDifficulty(val int) (QuestionDifficulty, error) {
 	if val < int(EasyDifficulty) && val > int(HardDifficulty) {
@@ -69,11 +76,11 @@ func DetermineDifficulty(val int) (QuestionDifficulty, error) {
 func DetermineConfidenceLevelFromString(valStr string) (ConfidenceLevel, error) {
 	val, err := strconv.ParseInt(valStr, 10, 0)
 	if err != nil {
-		return VeryHighConfidence, err
+		return HighConfidence, err
 	}
 
-	if val < int64(VeryLowConfidence) && val > int64(VeryHighConfidence) {
-		return VeryHighConfidence, fmt.Errorf("%d is not recognized as a valid difficulty level", val)
+	if val < int64(VeryLowConfidence) && val > int64(HighConfidence) {
+		return HighConfidence, fmt.Errorf("%d is not recognized as a valid difficulty level", val)
 	}
 
 	return ConfidenceLevel(val), nil

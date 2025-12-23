@@ -33,18 +33,8 @@ CREATE TABLE IF NOT EXISTS questionSubmissions (
     FOREIGN KEY (questionId) REFERENCES questions(id)
 );
 
-CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY,
-    email VARCHAR(255) NOT NULL,
-    passwordHash VARCHAR(255) NOT NULL,
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (email)
-);
-
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE users;
 -- +goose StatementEnd

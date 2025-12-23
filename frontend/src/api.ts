@@ -36,3 +36,14 @@ export const getQuestionSubmissions = async (id: number) => {
 
     return response.data
 }
+
+export const createQuestionSubmission
+    = async (questionID: number, confidenceLevel: number, timeTaken?: number) => {
+    const response = await instance.post(`/questions/submissions`, {
+        questionID,
+        confidenceLevel,
+        timeTaken
+    })
+    
+    return response.data
+}

@@ -16,6 +16,7 @@ type QuestionRepository interface {
 	GetQuestions(c context.Context, tags []string, page int, limit int) ([]models.Question, error)
 	GetAllQuestionTags(c context.Context) ([]string, error)
 	GetTagsForQuestion(c context.Context, ID int) ([]string, error)
+	GetQuestionCard(c context.Context, questionID int, userID uuid.UUID) (models.CardState, error)
 	SaveQuestion(c context.Context, question models.Question) error
 	SaveQuestionTag(c context.Context, questionId int, tag string) error
 	SaveQuestionSubmission(c context.Context, questionID int, userID uuid.UUID, date time.Time, timeTaken time.Duration, confidenceLevel models.ConfidenceLevel) error

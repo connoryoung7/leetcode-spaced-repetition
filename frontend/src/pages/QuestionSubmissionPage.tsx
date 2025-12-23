@@ -9,13 +9,13 @@ import { Input } from '../components/ui/input';
 import { Slider } from '../components/ui/slider';
 import { Field, FieldGroup, FieldLabel } from '../components/ui/field';
 import { Button } from '../components/ui/button';
+import { createQuestionSubmission } from '../api';
 
 enum ConfidenceLevel {
     VeryLow = 1,
     Low = 2,
     Medium = 3,
     High = 4,
-    VeryHigh = 5
 }
 
 const ConfidenceLevelMemes = [
@@ -30,17 +30,12 @@ const ConfidenceLevelMemes = [
         text: "I see how they did it, but I did not see that coming"
     },
     {
-        level: ConfidenceLevel.Medium,
-        meme: "chuck_norris.gif",
-        text: "Neither confusion nor mastery"
-    },
-    {
         level: ConfidenceLevel.High,
         meme: "exploding_brain.gif",
         text: "Things are starting to click..."
     },
     {
-        level: ConfidenceLevel.VeryHigh,
+        level: ConfidenceLevel.High,
         meme: "great_gatsy_nod.gif",
         text: "You did it, buddy"
     }
@@ -48,7 +43,7 @@ const ConfidenceLevelMemes = [
 
 const formSchema = z.object({
     questionId: z.string(),
-    confidenceLevel: z.number().min(ConfidenceLevel.VeryLow).max(ConfidenceLevel.VeryHigh),
+    confidenceLevel: z.number().min(ConfidenceLevel.VeryLow).max(ConfidenceLevel.High),
     timeTaken: z.number().min(0)
 })
 
@@ -61,8 +56,15 @@ const QuestionSubmissionPage: React.FC = () => {
         }
     })
 
-    const onSubmit = (data: z.infer<typeof formSchema>) => {
+    const onSubmit = async (data: z.infer<typeof formSchema>) => {
         console.log("data =", data)
+        const response = await createQuestionSubmission(
+            parseInt(data.questionId),
+            data.confidenceLevel,
+            data.timeTaken
+        )
+
+        console.log("response =", response)
     }
 
     console.log("formState =", form.formState.isValid)
@@ -96,7 +98,7 @@ const QuestionSubmissionPage: React.FC = () => {
                                         value={[field.value]}
                                         step={1}
                                         min={ConfidenceLevel.VeryLow}
-                                        max={ConfidenceLevel.VeryHigh}
+                                        max={ConfidenceLevel.High}
                                         onValueChange={val=> field.onChange(val[0])}
                                     />
                                     <p>{ConfidenceLevelMemes[field.value - 1].text}</p>

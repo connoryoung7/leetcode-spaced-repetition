@@ -129,7 +129,8 @@ func main() {
 	// Adding question tags
 	tagsFileContent, err := os.ReadFile("merged_problems.json")
 	if err != nil {
-
+		fmt.Println(err.Error())
+		return
 	}
 
 	var mergedQuestions Questions

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 type QuestionPostgresRepository struct {
@@ -17,7 +18,13 @@ type QuestionPostgresRepository struct {
 
 // SaveQuestionSubmission implements QuestionRepository.
 func (r QuestionPostgresRepository) SaveQuestionSubmission(c context.Context, questionID int, userID uuid.UUID, date time.Time, timeTaken time.Duration, confidenceLevel models.ConfidenceLevel) error {
-	_, err := r.db.ExecContext(
+	tx, err := r.db.BeginTx(c, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.ExecContext(
 		c,
 		`INSERT INTO questionSubmissions (questionId, userId, submissionDate, timeTaken, confidenceLevel) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (questionId, userId, submissionDate) DO NOTHING`,
 		questionID,
@@ -26,8 +33,22 @@ func (r QuestionPostgresRepository) SaveQuestionSubmission(c context.Context, qu
 		fmt.Sprintf("%d seconds", int64(timeTaken.Seconds())),
 		confidenceLevel,
 	)
+	if err != nil {
+		pqErr, ok := err.(*pq.Error)
+		if pqErr.Code == "23503" && ok {
+			return fmt.Errorf("foreign key violation: %v", pqErr.Message)
+		}
 
-	return err
+		return err
+	}
+
+	// card, err := r.getQuestionCard(c, tx, questionID, userID)
+	// if err != nil {
+	// 	return err
+	// }
+	// utils.ApplyReview(card, int(confidenceLevel), date)
+
+	return tx.Commit()
 }
 
 // GetAllQuestionsPastReviewDate implements QuestionRepository.
@@ -175,4 +196,42 @@ func (r QuestionPostgresRepository) GetTagsForQuestion(ctx context.Context, ID i
 	}
 
 	return tags, nil
+}
+
+func (r QuestionPostgresRepository) getQuestionCard(c context.Context, tx *sql.Tx, questionID int, userID uuid.UUID) (models.CardState, error) {
+	var id string
+	var questionId int
+	var userId string
+	var stability float64
+	var difficulty float64
+	var elapsedDays uint64
+	var scheduledDays uint64
+	var reps uint64
+	var lapses uint64
+	var lastReview time.Time
+
+	row := tx.QueryRowContext(
+		c,
+		"SELECT id, questionId, userId, stability, difficulty, elapsedDays, scheduledDays, reps, lapses, lastReview FROM cardStates WHERE questionId = $1 AND userId = $2",
+		questionID, userID,
+	)
+
+	err := row.Scan(&id, &questionId, &userId, &stability, &difficulty, &elapsedDays, &scheduledDays, &reps, &lapses, &lastReview)
+
+	if err != nil {
+		return models.CardState{}, err
+	}
+
+	return models.CardState{
+		ID:            uuid.MustParse(id),
+		QuestionID:    questionId,
+		UserID:        uuid.MustParse(userId),
+		Stability:     stability,
+		Difficulty:    difficulty,
+		ElapsedDays:   elapsedDays,
+		ScheduledDays: scheduledDays,
+		Reps:          reps,
+		Lapses:        lapses,
+		LastReview:    lastReview,
+	}, nil
 }
