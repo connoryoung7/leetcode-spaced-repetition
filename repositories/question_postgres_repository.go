@@ -133,8 +133,6 @@ func (r QuestionPostgresRepository) GetQuestionSubmissions(ctx context.Context, 
 		for rows.Next() {
 			var sub models.QuestionSubmissionWithDetails
 
-			fmt.Printf("rows.Next()\n")
-
 			if err := rows.Scan(
 				&sub.ID,
 				&sub.Question.ID,

@@ -48,7 +48,7 @@ const ListQuestionSubmissionsPage = () => {
     }, [])
 
     return (
-        <div className="absolute inset-0 w-9/10 mx-auto">
+        <div className="w-9/10 mx-auto">
             <div>Submissions Page</div>
             <div>
                 <Table>
