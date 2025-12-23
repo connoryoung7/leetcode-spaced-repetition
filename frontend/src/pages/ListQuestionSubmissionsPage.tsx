@@ -12,6 +12,7 @@ import {
 import { useNavigate, Link } from "@tanstack/react-router";
 // import { useQuestionSubmissions } from "../hooks/api";
 import { getQuestionSubmissionsV2 } from "../api";
+import { generateLeetcodeURL } from "../lib/leetcodeUtils";
 
 const convertNumToDifficulty = (val: number) => {
     switch (val) {
@@ -67,16 +68,16 @@ const ListQuestionSubmissionsPage = () => {
                     </TableHeader>
                     <TableBody>
                         {
-                            questions.map(question => (
+                            questions.map(submission => (
                                 <TableRow>
-                                    <TableCell className="text-left">{question.id}</TableCell>
-                                    <TableCell className="font-medium text-left">{question.title}</TableCell>
-                                    <TableCell className="text-left">{convertNumToDifficulty(question.difficulty)}</TableCell>
+                                    <TableCell className="text-left">{submission.question.id}</TableCell>
+                                    <TableCell className="font-medium text-left">{submission.question.title}</TableCell>
+                                    <TableCell className="text-left">{convertNumToDifficulty(submission.question.difficulty)}</TableCell>
                                     <TableCell className="text-left">
-                                        <Link to={`/questions/${question.id}`}>Open Submissions</Link>
+                                        <Link to={`/questions/${submission.question.id}`}>Open Submissions</Link>
                                     </TableCell>
                                     <TableCell className="text-left">
-                                        <a href={generateLinkForLeetcode(question.slug)} target="_blank">Open</a>
+                                        <a href={generateLeetcodeURL(submission.question.id)} target="_blank">Open</a>
                                     </TableCell>
                                 </TableRow>
                             ))

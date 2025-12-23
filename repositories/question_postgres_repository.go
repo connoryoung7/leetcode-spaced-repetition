@@ -119,7 +119,8 @@ func (r QuestionPostgresRepository) GetQuestionSubmissions(ctx context.Context, 
 				EXTRACT(EPOCH  FROM timeTaken),
 				confidenceLevel,
 				questions.title,
-				questions.description
+				questions.description,
+				questions.difficulty
 			FROM questionSubmissions
 			JOIN questions ON questionSubmissions.questionId = questions.id
 			ORDER BY submissionDate DESC`,
@@ -142,6 +143,7 @@ func (r QuestionPostgresRepository) GetQuestionSubmissions(ctx context.Context, 
 				&sub.ConfidenceLevel,
 				&sub.Question.Title,
 				&sub.Question.Description,
+				&sub.Question.Difficulty,
 			); err != nil {
 				return []models.QuestionSubmissionWithDetails{}, err
 			}

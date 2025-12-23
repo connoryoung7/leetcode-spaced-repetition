@@ -54,7 +54,7 @@ func RegisterRoutes(r *gin.Engine, questionsService *services.QuestionService) {
 	questionsGroup := r.Group("/questions")
 	questionsGroup.GET("", questionsController.getQuestions)
 	questionsGroup.GET("tags", questionsController.GetAllQuestionTags)
-	questionsGroup.GET("submissions", questionsController.getQuestionSubmissions)
+	questionsGroup.GET("submissions", questionsController.getAllQuestionSubmissions)
 	questionsGroup.POST("submissions", questionsController.SaveQuestionSubmission)
 	questionsGroup.GET(":id", questionsController.GetQuestionByID)
 
@@ -195,4 +195,33 @@ func (c QuestionsController) SaveQuestionSubmission(context *gin.Context) {
 	context.JSON(201, gin.H{
 		"message": "Successfully saved question submission",
 	})
+}
+
+func (c QuestionsController) getAllQuestionSubmissions(context *gin.Context) {
+	// questionIDsParam, exists := context.GetQueryArray("questionId")
+	var request getSubmissionsRequest
+	if err := context.ShouldBindQuery(&request); err != nil {
+		context.JSON(400, gin.H{
+			"error": "Invalid query parameters",
+		})
+	}
+
+	questionIDs := request.QuestionID
+
+	submissions, err := c.questionsService.GetQuestionSubmissions(context, questionIDs)
+	if err != nil {
+		context.JSON(500, gin.H{
+			"error": "An internal server error has occurred.",
+		})
+	}
+
+	resp := models.Pagaination[models.QuestionSubmissionWithDetails]{
+		Data: submissions,
+	}
+
+	if len(submissions) == 0 {
+		resp.Data = make([]models.QuestionSubmissionWithDetails, 0)
+	}
+
+	context.JSON(200, resp)
 }

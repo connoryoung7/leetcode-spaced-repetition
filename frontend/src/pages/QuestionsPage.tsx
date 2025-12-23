@@ -16,21 +16,9 @@ import { cn } from "../lib/utils";
 import { Button } from "../components/ui/button";
 import { useQuestionTags } from "../hooks/api";
 import { generateLinkForLeetcode } from "../lib/leetcodeUtils";
+import { convertNumToDifficulty } from "../models/Question";
 
 const baseBadgeClass = "cursor-pointer"
-
-const convertNumToDifficulty = (val: number) => {
-    switch (val) {
-        case 1:
-            return "Easy"
-        case 2:
-            return "Medium"
-        case 3:
-            return "Difficult"
-        default:
-            return "N/A"
-    }
-}
 
 const QuestionsPage = () => {
     const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set())
