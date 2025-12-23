@@ -4,6 +4,7 @@ import { createRootRoute, createRoute, createRouter, RouterProvider, Outlet } fr
 import QuestionSubmissionPage from './pages/QuestionSubmissionPage'
 import QuestionsPage from './pages/QuestionsPage'
 import QuestionMetadataPage from './pages/QuestionMetadataPage'
+import ListQuestionSubmissionsPage from './pages/ListQuestionSubmissionsPage'
 
 const rootRoute = createRootRoute()
 const indexRoute = createRoute({
@@ -15,6 +16,11 @@ const questionsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: 'questions',
   component: () => <Outlet />
+})
+const submissionsRoute = createRoute({
+  getParentRoute: () => questionsRoute,
+  path: 'submissions',
+  component: () => <ListQuestionSubmissionsPage />
 })
 
 const questionsListRoute = createRoute({
@@ -34,7 +40,8 @@ const routeTree = rootRoute.addChildren([
   questionsRoute.addChildren([
     questionsListRoute,
     questionMetadataRoute
-  ])
+  ]),
+  submissionsRoute,
 ])
 const router = createRouter({ routeTree })
 

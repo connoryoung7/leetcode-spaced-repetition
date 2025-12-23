@@ -4,15 +4,7 @@ import { useParams } from '@tanstack/react-router'
 import { Spinner } from "../components/ui/spinner"
 
 import { useQuestionSubmissions } from "../hooks/api"
-
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import QuestionSubmissionsTable from '../components/QuestionSubmissionsTable'
 
 const QuestionMetadataPage: FC = () => {
     const questionId = useParams({
@@ -28,28 +20,7 @@ const QuestionMetadataPage: FC = () => {
                 isLoading ? <Spinner /> : null
             }
             {
-                data ?
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Confidence</TableHead>
-                            <TableHead className="text-right">Time Taken</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {
-                            data.data.map(submission => (
-                                <TableRow>
-                                    <TableCell>{submission.date}</TableCell>
-                                    <TableCell>{submission.confidenceLevel}</TableCell>
-                                    <TableCell>{submission.timeTaken}</TableCell>
-                                </TableRow>
-                            ))
-                        }
-                    </TableBody>
-                </Table>
-                : null
+                data ? <QuestionSubmissionsTable submissions={data.data} /> : null
             }
         </div>
     )

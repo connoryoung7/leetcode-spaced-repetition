@@ -57,17 +57,12 @@ const QuestionSubmissionPage: React.FC = () => {
     })
 
     const onSubmit = async (data: z.infer<typeof formSchema>) => {
-        console.log("data =", data)
-        const response = await createQuestionSubmission(
+        await createQuestionSubmission(
             parseInt(data.questionId),
             data.confidenceLevel,
             data.timeTaken
         )
-
-        console.log("response =", response)
     }
-
-    console.log("formState =", form.formState.isValid)
 
     return (
         <div>
